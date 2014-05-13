@@ -133,26 +133,24 @@ function get_courses_listing()
         $results = $sth->fetchAll(PDO::FETCH_ASSOC);
         $sth->closeCursor();
 
-        foreach ($results as $result) {
-            $cert_type = get_certificate_type($result['coursetypecert']);
-            
-            if (recursive_array_search($cert_type, $all_listing)) {
+        foreach ($results as $result) {            
+            if (recursive_array_search($result['coursename'], $all_listing)) {
 
-                $key = recursive_array_search($cert_type, $all_listing);
+                $key = recursive_array_search($result['coursename'], $all_listing);
                 $all_listing[$key]['classes'][] = $result;
                 
             } else {
-                #$result['']
                 $all_listing[] = array(
-                    'certification_details' => array(
-                        'certificate_type' => $cert_type
+                    'course' => array(
+                        'course_name' => $result['coursename'],
+                        'course_id' => $result['coursetype']
                     ),
                     'classes' => array($result)
                 );
             }
         }
         
-        return $results; //$all_listing;
+        return $all_listing;
     }
     
     return false;
