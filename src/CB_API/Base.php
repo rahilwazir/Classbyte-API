@@ -1,0 +1,40 @@
+<?php
+namespace CB_API;
+
+abstract class Base
+{
+    protected $request_method = null;
+    protected $verified = false;
+    
+	public function __construct()
+    {
+        $this->requestMethod();
+        
+        $this->validate();
+    }
+    
+    protected function validate()
+    {
+        if (!$this->request_method) {
+            send_header(401);
+        }
+        
+        $email = $_SERVER['PHP_AUTH_USER'];
+        $password = $_SERVER['PHP_AUTH_PW'];
+        
+        $key = getApiKey($email);
+
+        if ($key && $key !== $password) {
+            send_header(401);
+        }
+        
+        $this->verified = true;
+    }
+    
+    protected function requestMethod()
+    {
+        if ("POST" === $_SERVER['REQUEST_METHOD']) {
+            $this->request_method = $_SERVER['REQUEST_METHOD'];
+        }
+    }
+}

@@ -1,0 +1,17 @@
+Options -Indexes
+
+DirectoryIndex /api/public/index.php
+
+Header set Cache-Control "no-transform"
+Header set Content-Type "application/json; charset=utf-8"
+
+RewriteEngine On
+RewriteBase /api/
+
+RewriteCond %{REQUEST_URI} ^/api/src
+RewriteCond %{REQUEST_URI} !^/api/src.+\.(?:gif|png|jpg|jpeg|css|js)$
+RewriteRule ^ - [F]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /api/public/index.php [L]
