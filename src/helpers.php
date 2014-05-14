@@ -123,6 +123,7 @@ function get_courses_listing()
           INNER JOIN instructor_cert_types ins_c
 	        ON ct.coursetypecert = ins_c.ins_cert_id
         WHERE 1 = 1
+          AND sc.coursedate > CURDATE()
           AND sc.privatecourse = 'no'
           AND (sc.coursestatus = 'scheduled' OR sc.coursestatus = 'accepted')
     ";
@@ -133,17 +134,19 @@ function get_courses_listing()
         $results = $sth->fetchAll(PDO::FETCH_ASSOC);
         $sth->closeCursor();
 
-        foreach ($results as $result) {            
-            if (recursive_array_search($result['coursename'], $all_listing)) {
-
-                $key = recursive_array_search($result['coursename'], $all_listing);
+        foreach ($results as $result) {
+            $cert_type = get_certificate_type($result['coursetypecert']);
+            
+            $key = recursive_array_search($result['coursename'], $all_listing);
+            
+            if ($key !== false) {
                 $all_listing[$key]['classes'][] = $result;
-                
             } else {
                 $all_listing[] = array(
                     'course' => array(
                         'course_name' => $result['coursename'],
-                        'course_id' => $result['coursetype']
+                        'course_id' => $result['coursetype'],
+                        'certificate' => $cert_type
                     ),
                     'classes' => array($result)
                 );
@@ -187,7 +190,8 @@ function get_certificate_type($id)
  * =================================================================================
  */
  
-function recursive_array_search($needle,$haystack) {
+function recursive_array_search($needle,$haystack)
+{
     foreach($haystack as $key=>$value) {
         $current_key=$key;
         if($needle===$value OR (is_array($value) && recursive_array_search($needle,$value) !== false)) {
