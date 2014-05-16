@@ -35,9 +35,10 @@ function send_header($code)
 
 function disable_errors($disable = false)
 {
-    if ($disable)
+    if ($disable) {
         error_reporting(E_ALL);
         return;
+    }
     
     ini_set('display_errors', 0);
     error_reporting(0);
