@@ -33,6 +33,16 @@ function send_header($code)
 	exit;
 }
 
+function disable_errors($disable = false)
+{
+    if ($disable)
+        error_reporting(E_ALL);
+        return;
+    
+    ini_set('display_errors', 0);
+    error_reporting(0);
+}
+
 // Log error reporting
 function log_error($msg = '')
 {
@@ -105,15 +115,23 @@ function get_courses_listing()
           sc.coursedate,
           sc.scheduledcoursesid,
           CONCAT_WS(', ', loc.locationcity, loc.locationstate) location,
+          ct.coursetypename course,
           CONCAT_WS(' ', ins_c.ins_certification_name, ct.coursetypename) coursename,
           loc.locationzip,
           loc.lat AS lat,
           loc.lng AS lon,
+          loc.locationaddress address,
           ct.coursetypename,
+          ct.comments,
           ct.coursetypecert,
           sc.courseinstructor,
           sc.coursedate,
-          sc.coursetime 
+          sc.coursecost,
+          sc.notes,
+          sc.coursetime,
+          ca.inst_cert_agency_name agency,
+          sc.coursenumberofseats totalseats,
+          (sc.coursenumberofseats - CAST(COUNT(cr.courseregistrationsid) AS UNSIGNED)) remainingseats
         FROM
           scheduledcourses sc 
           RIGHT JOIN locations loc 
@@ -122,10 +140,15 @@ function get_courses_listing()
             ON sc.coursetype = ct.coursetypesid
           INNER JOIN instructor_cert_types ins_c
 	        ON ct.coursetypecert = ins_c.ins_cert_id
+          INNER JOIN courseregistrations cr
+	        ON sc.scheduledcoursesid = cr.scheduledid AND cr.registrationstatus != 'cancelled'
+          INNER JOIN instructor_cert_agency ca
+            ON ct.coursetypecert = ca.inst_cert_agencyid
         WHERE 1 = 1
           AND sc.coursedate > CURDATE()
           AND sc.privatecourse = 'no'
           AND (sc.coursestatus = 'scheduled' OR sc.coursestatus = 'accepted')
+        GROUP BY sc.scheduledcoursesid
     ";
     
     $sth = $rw->db->prepare(trim($sql));
