@@ -24,11 +24,13 @@ abstract class Base
         
         $key = getApiKey($email);
 
-        if ($key && $key !== $password) {
+        if ($key && $key === $password) {
+            $this->verified = true;
+        } else {
             send_header(401);
         }
         
-        $this->verified = true;
+        
     }
     
     protected function requestMethod()
