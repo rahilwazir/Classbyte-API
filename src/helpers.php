@@ -1,9 +1,7 @@
 <?php
 // Send header
-function send_header($code)
+function send_header($code, $msg = '')
 {
-    $msg = '';
-
     switch ($code) {
         case 401:
             $code = 401;
@@ -25,7 +23,7 @@ function send_header($code)
 
 	output(array(
 		"error" => $msg,
-		"code" => $code
+		"status" => $code
 	));
 	
 	error_log($msg, 0);
@@ -68,10 +66,11 @@ function convert_to_cc($str)
  */
 function output($str, $echo = true)
 {
-	if ($echo)
-		echo json_encode($str);
-
-	return json_encode($str);
+	if ($echo) {
+	   echo json_encode($str);
+	} else {
+	   return json_encode($str);
+	}
 }
 
 /**
@@ -86,9 +85,9 @@ function getApiKey($email)
     $email = filter_var($email, FILTER_SANITIZE_EMAIL);
     
     $sql = "
-        SELECT corpapikey
-        FROM corp_admins
-        WHERE corpuseremail = :email
+        SELECT apikey
+        FROM instructors
+        WHERE instructoremail = :email
         LIMIT 1
     ";
     
@@ -96,88 +95,9 @@ function getApiKey($email)
     $sth->bindParam(':email', $email, PDO::PARAM_STR);
     
     if ($sth->execute()) {
-        $results = $sth->fetch(PDO::FETCH_ASSOC);
+        $result = $sth->fetch(PDO::FETCH_ASSOC);
         
-        return $results['corpapikey'];
-    }
-    
-    return false;
-}
-
-function get_courses_listing()
-{
-    global $rw;
-    
-    $all_listing = array();
-    
-    $sql = "
-        SELECT 
-          sc.coursetype,
-          sc.coursedate,
-          sc.scheduledcoursesid,
-          CONCAT_WS(', ', loc.locationcity, loc.locationstate) location,
-          ct.coursetypename course,
-          CONCAT_WS(' ', ins_c.ins_certification_name, ct.coursetypename) coursename,
-          loc.locationzip,
-          loc.lat AS lat,
-          loc.lng AS lon,
-          loc.locationaddress address,
-          ct.coursetypename,
-          ct.comments,
-          ct.coursetypecert,
-          sc.courseinstructor,
-          sc.coursedate,
-          sc.coursecost,
-          sc.notes,
-          sc.coursetime,
-          ca.inst_cert_agency_name agency,
-          sc.coursenumberofseats totalseats,
-          (sc.coursenumberofseats - CAST(COUNT(cr.courseregistrationsid) AS UNSIGNED)) remainingseats
-        FROM
-          scheduledcourses sc 
-          RIGHT JOIN locations loc 
-            ON sc.courselocationid = loc.locationsid 
-          RIGHT JOIN coursetypes ct 
-            ON sc.coursetype = ct.coursetypesid
-          INNER JOIN instructor_cert_types ins_c
-	        ON ct.coursetypecert = ins_c.ins_cert_id
-          INNER JOIN courseregistrations cr
-	        ON sc.scheduledcoursesid = cr.scheduledid AND cr.registrationstatus != 'cancelled'
-          INNER JOIN instructor_cert_agency ca
-            ON ct.coursetypecert = ca.inst_cert_agencyid
-        WHERE 1 = 1
-          AND sc.coursedate > CURDATE()
-          AND sc.privatecourse = 'no'
-          AND (sc.coursestatus = 'scheduled' OR sc.coursestatus = 'accepted')
-        GROUP BY sc.scheduledcoursesid
-    ";
-    
-    $sth = $rw->db->prepare(trim($sql));
-    
-    if ($sth->execute()) {
-        $results = $sth->fetchAll(PDO::FETCH_ASSOC);
-        $sth->closeCursor();
-
-        foreach ($results as $result) {
-            $cert_type = get_certificate_type($result['coursetypecert']);
-            
-            $key = recursive_array_search($result['coursename'], $all_listing);
-            
-            if ($key !== false) {
-                $all_listing[$key]['classes'][] = $result;
-            } else {
-                $all_listing[] = array(
-                    'course' => array(
-                        'course_name' => $result['coursename'],
-                        'course_id' => $result['coursetype'],
-                        'certificate' => $cert_type
-                    ),
-                    'classes' => array($result)
-                );
-            }
-        }
-        
-        return $all_listing;
+        return $result['apikey'];
     }
     
     return false;
