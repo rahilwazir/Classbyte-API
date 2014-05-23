@@ -23,7 +23,7 @@ abstract class Base
         $password = $_SERVER['PHP_AUTH_PW'];
         
         $key = getApiKey($email);
-        
+
         if ($key && $key === $password) {
             $this->verified = true;
         } else {

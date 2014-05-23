@@ -41,7 +41,7 @@ class Route
 	public function callee()
 	{
 		if (isset($this->segments[0], $this->segments[1])) {
-			$class_name = "CB_API" . '\\' . $this->segments[0];
+			$class_name = __NAMESPACE__ . '\\' . $this->segments[0];
 
 			if (class_exists($class_name)) {
 				$cb_si = new $class_name();
@@ -53,7 +53,7 @@ class Route
 						if (!empty($params) && count($params) > 0) {
 							$args = $params;
 						}
-						
+                        
 						call_user_func_array(array($cb_si, $this->segments[1]), $args);
 					}
 				}

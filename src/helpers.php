@@ -71,6 +71,7 @@ function output($str, $echo = true)
 	} else {
 	   return json_encode($str);
 	}
+    exit;
 }
 
 /**
@@ -80,24 +81,58 @@ function output($str, $echo = true)
  */
 function getApiKey($email)
 {
-    global $rw;
-
     $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        
+    return exist_in(array(
+        'select' => 'apikey',
+        'table' => 'instructors',
+        'where_column' => 'instructoremail',
+        'where_value' => $email
+    ));
+    
+    if ($result) {        
+        return $result['apikey'];
+    }
+    
+    return false;
+}
+
+/**
+ * @param string $table
+ * @param array $where
+ * @return string|bool
+ */
+function exist_in(array $data)
+{
+    global $rw;
+    
+    if (!isset($data['limit'])) {
+        $data['limit'] = 'LIMIT 1';
+    }
+    
+    if (!isset($data['select'])) {
+        $data['select'] = '*';
+    }
     
     $sql = "
-        SELECT apikey
-        FROM instructors
-        WHERE instructoremail = :email
-        LIMIT 1
+        SELECT {$data['select']}
+        FROM {$data['table']}
+        WHERE {$data['where_column']} = :val
+        {$data['limit']}
     ";
-    
+
     $sth = $rw->db->prepare(trim($sql));
-    $sth->bindParam(':email', $email, PDO::PARAM_STR);
-    
+    $pdo_type_const = (isset($data['where_datatype']) ? $data['where_datatype'] : PDO::PARAM_STR);
+    $sth->bindParam(':val', $data['where_value'], $pdo_type_const);
+
     if ($sth->execute()) {
         $result = $sth->fetch(PDO::FETCH_ASSOC);
         
-        return $result['apikey'];
+        if ($data['select'] !== '*') {
+            $return_val = $data['select']; 
+        }
+        
+        return (isset($return_val)) ? $result[ $return_val ] : $result;
     }
     
     return false;
@@ -109,22 +144,12 @@ function get_certificate_type($id)
 
     $id = intval($id);
     
-    $sql = "
-        SELECT ins_certification_name
-        FROM instructor_cert_types
-        WHERE ins_cert_id = :id
-    ";
-    
-    $sth = $rw->db->prepare(trim($sql));
-    $sth->bindParam(':id', $id, PDO::PARAM_INT);
-    
-    if ($sth->execute()) {
-        $results = $sth->fetch(PDO::FETCH_ASSOC);
-        
-        return $results['ins_certification_name'];
-    }
-    
-    return false;
+    return exist_in(array(
+        'select' => 'ins_certification_name',
+        'table' => 'instructor_cert_types',
+        'where_column' => 'ins_cert_id',
+        'where_value' => $id
+    ));
     
 }
 
