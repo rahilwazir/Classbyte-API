@@ -1,7 +1,7 @@
 <?php
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src/autoload.php';
+namespace CB_API;
 
-use CB_API\Route;
+require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src/autoload.php';
 
 #disable_errors(true);
 

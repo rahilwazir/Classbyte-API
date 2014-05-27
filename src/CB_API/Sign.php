@@ -14,9 +14,7 @@ class Sign extends Base
 	}
     
     public function up()
-	{
-        global $rw;
-        
+	{        
         // Form fields
         $course_id = filter_input(0, 'course_id', FILTER_SANITIZE_NUMBER_INT);
         $std_name = filter_input(0, 'studentsname', FILTER_SANITIZE_STRING);
@@ -36,7 +34,7 @@ class Sign extends Base
             return;
         }
         
-        $errors = array();
+        $errors = "";
         
         $course_id_exist = exist_in(array(
             'table' => 'scheduledcourses',
@@ -52,20 +50,21 @@ class Sign extends Base
         ));
         
         if (!$course_id_exist) {
-            $errors['errors'][] = "Sorry, but the course doesn't exist.";
+            $errors = "Sorry, but the course doesn't exist. This mostly because you didn't enroll the course in the first place.";
         } else if (!isset($std_name, $std_lastname, $std_password, $std_password2, $std_email, $std_address, $std_zip)) {
-            $errors['errors'][] = "Required fields are missing.";    
+            $errors = "Required fields are missing.";    
         } else if ($email_exist) {
-            $errors['errors'][] = "Email is already exist.";
+            $errors = "Email already exist.";
         }
-        
-        $errors = array_filter($errors);
         
         if (!empty($errors)) {
-            output($errors);
+            output(array(
+                'success' => false,
+                'data' => $errors
+            ));
         }
 
-        $out = $rw->insertInto('students', array (
+        $student_reg = $this->insertInto('students', array (
             'studentsname' => $std_name,
             'studentlastname' => $std_lastname,
             'studentaddress' => $std_address,
@@ -84,8 +83,24 @@ class Sign extends Base
             'studentparent' => 1
         ));
 
-        if ($out) {
-            output(array($rw->lastInsertId()));
+        if ($student_reg && $this->lastInsertId()) {
+            $course_reg = $this->insertInto('courseregistrations', array (
+                'scheduledid' => $course_id,
+                'studentid' => $this->lastInsertId(),
+                'registrationstatus' => 'registered',
+                'paymentstatus' => 'not paid',
+                'registeredby' => 'selfregister',
+                'total_amount' => 0,
+                'total_product' => 0,
+                'form_data' => ''
+            ));
+            
+            if ($course_reg) {
+                output(array(
+                    'success' => true,
+                    'data' => 'Registration completed. You can now login below.'
+                ));
+            }
         }
 	}
 }

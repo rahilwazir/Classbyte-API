@@ -1,4 +1,13 @@
 <?php
+/**
+ * Get RWDB Instance
+ * @return instance
+ */
+function dbInstance()
+{
+    return new RWDB();
+}
+
 // Send header
 function send_header($code, $msg = '')
 {
@@ -104,8 +113,6 @@ function getApiKey($email)
  */
 function exist_in(array $data)
 {
-    global $rw;
-    
     if (!isset($data['limit'])) {
         $data['limit'] = 'LIMIT 1';
     }
@@ -121,7 +128,7 @@ function exist_in(array $data)
         {$data['limit']}
     ";
 
-    $sth = $rw->db->prepare(trim($sql));
+    $sth = dbInstance()->db->prepare(trim($sql));
     $pdo_type_const = (isset($data['where_datatype']) ? $data['where_datatype'] : PDO::PARAM_STR);
     $sth->bindParam(':val', $data['where_value'], $pdo_type_const);
 
@@ -140,8 +147,6 @@ function exist_in(array $data)
 
 function get_certificate_type($id)
 {
-    global $rw;
-
     $id = intval($id);
     
     return exist_in(array(

@@ -1,13 +1,15 @@
 <?php
 namespace CB_API;
 
-abstract class Base
+abstract class Base extends \RWDB
 {
     protected $request_method = null;
     protected $verified = false;
     
 	public function __construct()
     {
+        parent::__construct();
+        
         $this->requestMethod();
         
         $this->validate();

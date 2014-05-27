@@ -28,7 +28,7 @@ class Route
 	{
 		$item = str_replace('-', '_', $item);
 
-		$url_replacements = preg_replace('#[^\w\d]#', '', convert_to_cc($item));
+		$url_replacements = preg_replace('#[^\w]#', '', convert_to_cc($item));
 
 		if ($key < 1) {
 			$item = ucfirst($url_replacements);

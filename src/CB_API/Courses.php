@@ -10,10 +10,6 @@ class Courses extends Base
 
 	public function listing()
 	{
-        global $rw;
-    
-        $all_listing = array();
-        
         $sql = "
             SELECT 
               sc.coursetype,
@@ -58,13 +54,14 @@ class Courses extends Base
               AND (sc.coursestatus = 'scheduled' OR sc.coursestatus = 'accepted')
             GROUP BY sc.scheduledcoursesid
         ";
-        
-        $sth = $rw->db->prepare(trim($sql));
 
-        if ($sth->execute()) {
-            $results = $sth->fetchAll(\PDO::FETCH_ASSOC);
-            $sth->closeCursor();
-    
+        $results = $this->getResults(array(
+            'sql' => $sql
+        ));
+
+        if ($results) {
+            $all_listing = array();
+            
             foreach ($results as $result) {
                 $cert_type = get_certificate_type($result['coursetypecert']);
                 
