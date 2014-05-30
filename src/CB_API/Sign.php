@@ -10,12 +10,24 @@ class Sign extends Base
 
 	public function in()
 	{
+        $email = filter_input(0, 'cb_login_email', FILTER_SANITIZE_EMAIL);
+        $password = filter_input(0, 'cb_login_password', FILTER_SANITIZE_STRING);
         
+        $student_exist = exist_in(array(
+            'table' => 'students',
+            'where_column' => array('studentemddress', 'studentpassword'),
+            'where_value' => array($email, $password)
+        ));
+
+        if (!$student_exist) {
+            output_error("Account doesn't exist.");
+        }
+        
+        output_success("Logged In");
 	}
     
     public function up()
-	{        
-        // Form fields
+	{
         $course_id = filter_input(0, 'course_id', FILTER_SANITIZE_NUMBER_INT);
         $std_name = filter_input(0, 'studentsname', FILTER_SANITIZE_STRING);
         $std_lastname = filter_input(0, 'studentlastname', FILTER_SANITIZE_STRING);
@@ -58,10 +70,7 @@ class Sign extends Base
         }
         
         if (!empty($errors)) {
-            output(array(
-                'success' => false,
-                'data' => $errors
-            ));
+            output_error($errors);
         }
 
         $student_reg = $this->insertInto('students', array (
@@ -96,10 +105,7 @@ class Sign extends Base
             ));
             
             if ($course_reg) {
-                output(array(
-                    'success' => true,
-                    'data' => 'Registration completed. You can now login below.'
-                ));
+                output_success('Registration completed. You can now login.');
             }
         }
 	}

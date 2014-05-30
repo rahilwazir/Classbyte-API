@@ -224,10 +224,30 @@ function output($str, $echo = true)
 {
 	if ($echo) {
 	   echo json_encode($str);
+       exit;
 	} else {
 	   return json_encode($str);
 	}
-    exit;
+}
+
+function output_error($str = '')
+{
+    if (!empty($str)) {
+        output(array(
+            'success' => false,
+            'data' => $str
+        ));
+    }
+}
+
+function output_success($str = '')
+{
+    if (!empty($str)) {
+        output(array(
+            'success' => true,
+            'data' => $str
+        ));
+    }
 }
 
 /**
@@ -268,16 +288,47 @@ function exist_in(array $data)
         $data['select'] = '*';
     }
     
+    $where_column = $data['where_column'];
+    $where_value = $data['where_value'];
+    $relation = $data['relation'];
+    
+    if(!isset($relation)) {
+        $relation = "AND";
+    }
+    
+    $where = array();
+    $is = '';
+    
+    if (is_array($data['where_column']) && is_array($data['where_value'])) {
+        
+        $where = array_combine($where_column, $where_value);
+        
+        foreach ($where as $key => $value) {
+            if (!empty($key) && !empty($value)) {
+                $is .= " {$relation} {$key} = :{$key}";
+            }
+        }
+    } else {
+        $is = "{$relation} {$where_column} = :val";
+    }
+    
     $sql = "
         SELECT {$data['select']}
         FROM {$data['table']}
-        WHERE {$data['where_column']} = :val
+        WHERE 1=1 {$is}
         {$data['limit']}
     ";
-
-    $sth = dbInstance()->prepare(trim($sql));
+    
+    $sth = dbInstance()->prepare($sql);
     $pdo_type_const = (isset($data['where_datatype']) ? $data['where_datatype'] : PDO::PARAM_STR);
-    $sth->bindParam(':val', $data['where_value'], $pdo_type_const);
+    
+    if (!empty($where)) {
+        foreach ($where as $key => &$value) {
+            $sth->bindParam(":{$key}", $value, $pdo_type_const);
+        }
+    } else {
+        $sth->bindParam(":val", $where_value, $pdo_type_const);
+    }
 
     if ($sth->execute()) {
         $result = $sth->fetch(PDO::FETCH_ASSOC);
