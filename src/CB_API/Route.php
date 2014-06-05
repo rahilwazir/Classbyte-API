@@ -45,7 +45,8 @@ class Route
 
 			if (class_exists($class_name)) {
 				$cb_si = new $class_name();
-				if (method_exists($class_name, $this->segments[1])) {
+                $method = ltrim($this->segments[1], '_');
+				if (method_exists($class_name, $method)) {
 					if (is_callable(array($cb_si, $this->segments[1]))) {
 						$args = array();
 						

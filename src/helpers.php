@@ -230,22 +230,26 @@ function output($str, $echo = true)
 	}
 }
 
-function output_error($str = '')
+function output_error($action, $msg = null, $data = null)
 {
-    if (!empty($str)) {
+    if (!empty($action)) {
         output(array(
             'success' => false,
-            'data' => $str
+            'action' => $action,
+            'message' => $msg,
+            'object' => $data
         ));
     }
 }
 
-function output_success($str = '')
+function output_success($action, $msg = null, $data = null)
 {
-    if (!empty($str)) {
+    if (!empty($action)) {
         output(array(
             'success' => true,
-            'data' => $str
+            'action' => $action,
+            'message' => $msg,
+            'object' => $data
         ));
     }
 }
