@@ -338,7 +338,9 @@ function exist_in(array $data)
         $result = $sth->fetch(PDO::FETCH_ASSOC);
         
         if ($data['select'] !== '*') {
-            $return_val = $data['select']; 
+            if (strpos($data['select'], ',') === false) {
+                $return_val = $data['select'];
+            }            
         }
         
         return (isset($return_val)) ? $result[ $return_val ] : $result;
@@ -375,4 +377,55 @@ function recursive_array_search($needle,$haystack)
         }
     }
     return false;
+}
+
+/**
+ * Source: http://stackoverflow.com/a/2595372/2706988
+ */
+function crypto_rand_secure($min, $max) {
+    $range = $max - $min;
+    if ($range < 0) return $min; // not so random...
+    $log = log($range, 2);
+    $bytes = (int) ($log / 8) + 1; // length in bytes
+    $bits = (int) $log + 1; // length in bits
+    $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
+    do {
+        $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
+        $rnd = $rnd & $filter; // discard irrelevant bits
+    } while ($rnd >= $range);
+    return $min + $rnd;
+}
+
+/**
+ * Source: http://stackoverflow.com/a/2595372/2706988
+ */
+function getToken($length=32) {
+    $token = "";
+    $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    $codeAlphabet.= "abcdefghijklmnopqrstuvwxyz";
+    $codeAlphabet.= "0123456789";
+    for($i=0;$i<$length;$i++){
+        $token .= $codeAlphabet[crypto_rand_secure(0,strlen($codeAlphabet))];
+    }
+    return $token;
+}
+
+function get_user_info($user_id)
+{
+    if (!$user_id) return;
+    
+    return exist_in(array(
+        'select' => 'studentsname,
+                    studentlastname,
+                    studentaddress,
+                    studentaddress2,
+                    studentcity,
+                    studentstate,
+                    studentzip,
+                    studentmobilephone',
+        'table' => 'students',
+        'where_column' => 'studentsid',
+        'where_value' => $user_id,
+        'where_datatype' => PDO::PARAM_INT
+    ));
 }

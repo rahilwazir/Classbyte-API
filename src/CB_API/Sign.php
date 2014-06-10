@@ -3,8 +3,7 @@ namespace CB_API;
 
 class Sign extends Base
 {
-    const SIGN_IN_ID = 1;
-    const SIGN_UP_ID = 2;
+    const SIGN_ID = 1;
     
 	public function __construct()
 	{
@@ -23,7 +22,7 @@ class Sign extends Base
         ));
 
         if (!$student) {
-            output_error(self::SIGN_IN_ID, "Account doesn't exist.");
+            output_error(self::SIGN_ID, "Account doesn't exist.");
         }
         
         Session::set(array(
@@ -31,7 +30,7 @@ class Sign extends Base
             'email' => $student['studentemddress']
         ));
         
-        output_success(self::SIGN_IN_ID, "Logged In");
+        output_success(self::SIGN_ID, "Logged In");
 	}
     
     public function up()
@@ -51,7 +50,7 @@ class Sign extends Base
         $std_password2 = filter_input(0, 'studentpassword2');
 
         if (!isset($course_id)) {
-            output_error(self::SIGN_UP_ID, "Please first enroll for the course");
+            output_error(self::SIGN_ID, "Please first enroll for the course");
         }
         
         $errors = "";
@@ -78,7 +77,7 @@ class Sign extends Base
         }
         
         if (!empty($errors)) {
-            output_error(self::SIGN_UP_ID, $errors);
+            output_error(self::SIGN_ID, $errors);
         }
 
         $student_reg = $this->insertInto('students', array (
@@ -113,8 +112,18 @@ class Sign extends Base
             ));
             
             if ($course_reg) {
-                output_success(self::SIGN_UP_ID, 'Registration completed. You can now login.');
+                output_success(self::SIGN_ID, 'Registration completed. You can now login.');
             }
         }
 	}
+    
+    public function out()
+    {
+        if (Session::get('id') && Session::get('email')) {
+            Session::destroy();
+            output_success(self::SIGN_ID);
+        }
+        
+        output_error(self::SIGN_ID);
+    }
 }

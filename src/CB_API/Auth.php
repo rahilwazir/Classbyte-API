@@ -19,16 +19,6 @@ class Auth extends Base
         output_error(self::AUTH_ID);
     }
     
-    public function userout()
-    {
-        if (Session::get('id') && Session::get('email')) {
-            Session::destroy();
-            output_success(self::AUTH_ID);
-        }
-        
-        output_error(self::AUTH_ID);
-    }
-    
 	public function verify()
 	{
 		if ($this->verified) {
