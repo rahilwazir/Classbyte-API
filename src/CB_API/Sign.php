@@ -20,14 +20,15 @@ class Sign extends Base
             'where_column' => array('studentemddress', 'studentpassword'),
             'where_value' => array($email, $password)
         ));
-
+        
         if (!$student) {
             output_error(self::SIGN_ID, "Account doesn't exist.");
         }
         
         Session::set(array(
             'id' => $student['studentsid'],
-            'email' => $student['studentemddress']
+            'email' => $student['studentemddress'],
+            'session_id' => getToken()
         ));
         
         output_success(self::SIGN_ID, "Logged In");
@@ -70,7 +71,14 @@ class Sign extends Base
         
         if (!$course_id_exist) {
             $errors = "Sorry, but the course doesn't exist. This mostly because you didn't enroll the course in the first place.";
-        } else if (!isset($std_name, $std_lastname, $std_password, $std_password2, $std_email, $std_address, $std_zip)) {
+        } else if (!isset(  $std_name,
+                            $std_lastname,
+                            $std_password,
+                            $std_password2,
+                            $std_email,
+                            $std_address,
+                            $std_zip
+        )) {
             $errors = "Required fields are missing.";    
         } else if ($email_exist) {
             $errors = "Email already exist.";

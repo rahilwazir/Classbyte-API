@@ -412,20 +412,54 @@ function getToken($length=32) {
 
 function get_user_info($user_id)
 {
+    if (!$user_id) {
+        $user_id = Session::get('id');
+    }
+    
     if (!$user_id) return;
     
     return exist_in(array(
-        'select' => 'studentsname,
+        'select' => 'studentsid id,
+                    studentsname,
                     studentlastname,
                     studentaddress,
                     studentaddress2,
                     studentcity,
                     studentstate,
                     studentzip,
-                    studentmobilephone',
+                    studentmobilephone
+                    studentemddress',
         'table' => 'students',
         'where_column' => 'studentsid',
         'where_value' => $user_id,
         'where_datatype' => PDO::PARAM_INT
     ));
+}
+
+function isset_empty()
+{
+    if (func_num_args() > 0) {
+        $args = func_get_args();
+    } else if (is_array(func_get_arg(0))) {
+        $args = func_get_arg(0);
+    }
+    
+    if (isset($args)) {
+        foreach($args as $arg) {
+            if (!isset($arg) || empty($arg))
+                return false;
+        }
+    }
+        
+    return true;
+}
+
+function month_range()
+{
+    $month_range = array();
+    foreach (range(1, 12) as $r) {
+        $month_range[] = sprintf("%02d", $r);
+    }
+    
+    return $month_range;
 }

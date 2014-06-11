@@ -3,6 +3,8 @@ namespace CB_API;
 
 class Courses extends Base
 {
+    const COURSE_ID = 10;
+    
 	public function __construct()
 	{
 		parent::__construct();
