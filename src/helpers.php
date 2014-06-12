@@ -176,14 +176,14 @@ function send_header($code, $msg = '')
     }
 
 	header("HTTP/1.1 {$msg}");
-
+    
+    error_log($msg, 0);
+    
 	output(array(
 		"error" => $msg,
 		"status" => $code
 	));
-	
-	error_log($msg, 0);
-
+    
 	exit;
 }
 
@@ -410,13 +410,37 @@ function getToken($length=32) {
     return $token;
 }
 
-function get_user_info($user_id)
+function get_session_id()
 {
-    if (!$user_id) {
-        $user_id = Session::get('id');
+    if (!isset($_COOKIE['__cbapi'])) {
+        return false;
     }
+
+    return exist_in(array(
+        'select' => 'session_id', 
+        'table' => 'api_user_sessions',
+        'where_column' => 'session_id',
+        'where_value' => $_COOKIE['__cbapi']
+    ));
+}
+
+function get_user_id()
+{
+    return (int) exist_in(array(
+        'select' => 'user_id', 
+        'table' => 'api_user_sessions',
+        'where_column' => 'session_id',
+        'where_value' => (get_session_id()) ? get_session_id() : ''
+    ));
+}
+
+function get_user_info()
+{
+    $user_id = get_user_id();
     
-    if (!$user_id) return;
+    if (!$user_id) {
+        return false;
+    }
     
     return exist_in(array(
         'select' => 'studentsid id,
@@ -427,7 +451,7 @@ function get_user_info($user_id)
                     studentcity,
                     studentstate,
                     studentzip,
-                    studentmobilephone
+                    studentmobilephone,
                     studentemddress',
         'table' => 'students',
         'where_column' => 'studentsid',

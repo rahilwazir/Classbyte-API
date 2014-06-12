@@ -27,11 +27,17 @@ class Sign extends Base
         
         Session::set(array(
             'id' => $student['studentsid'],
-            'email' => $student['studentemddress'],
-            'session_id' => getToken()
+            'email' => $student['studentemddress']
         ));
         
-        output_success(self::SIGN_ID, "Logged In");
+        $session_id = session_id();
+        
+        $student_reg = $this->insertInto('api_user_sessions', array (
+            'session_id' => $session_id,
+            'user_id' => $student['studentsid']
+        ));
+        
+        output_success(self::SIGN_ID, "Logged In.", array('session_id' => $session_id));
 	}
     
     public function up()

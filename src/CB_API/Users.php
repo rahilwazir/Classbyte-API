@@ -12,9 +12,9 @@ class Users extends Base
     
     public function info()
     {
-        if (Session::get('id') && Session::get('email')) {
-            $user_info = get_user_info(Session::get('id'));
-            
+        $user_info = get_user_info();
+        
+        if ($user_info) {
             output_success(self::USERS_ID, null, $user_info);
         }
         

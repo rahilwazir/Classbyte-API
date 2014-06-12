@@ -80,10 +80,11 @@ class Payment extends Base
         
         try {
             require_once ABSPATH . 'assets/external_files/stripe_payment/lib/Stripe.php';
-            Stripe::setApiKey('sk_test_E7PndfA06ZwUe4GjANBr0Acf');
+            
+            \Stripe::setApiKey('sk_test_E7PndfA06ZwUe4GjANBr0Acf');
 
-			$charge = Stripe_Charge::create(array(
-				"amount" 				=> $data_fields['coursecost'],
+			$charge = \Stripe_Charge::create(array(
+				"amount" 				=> ((int) $data_fields['coursecost'] * 100),
 				"currency" 				=> "usd",
 				"card" 					=> $data_fields['stripeToken'],
 				"description" 			=> $user_data['studentemddress']
@@ -91,7 +92,7 @@ class Payment extends Base
             
             if ($charge->paid) {
                 $updated = $this->updateInto('courseregistrations', array(
-					"sessionid"							=> Session::get('session_id'),
+					"sessionid"							=> get_session_id(),
 					"paymenttransactionid"				=> $charge->id,
 					"paymentstatus"						=> 'paid',
 					"paymenttype"						=> "stripe",
@@ -101,7 +102,7 @@ class Payment extends Base
 					"form_data"							=> serialize($data_fields)
                 ), array(
                     'scheduledid' => $data_fields['scheduledcoursesid'],
-                    'studentid' => Session::get('id')
+                    'studentid' => $user_data['id']
                 ));
                 
                 if ($updated) {
@@ -115,12 +116,14 @@ class Payment extends Base
                         output_success(self::PAYMENT_ID, 'Payment successfuly made.');
                     }
                 }
+            } else {
+                output_error(self::PAYMENT_ID, 'Problem with Stripe.');
             }
             
         } catch(Exception $e) {
             echo $e->getMessage();
         }
         
-        output_success(self::PAYMENT_ID);
+        output_error(self::PAYMENT_ID);
     }
 }

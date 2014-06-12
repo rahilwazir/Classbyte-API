@@ -86,4 +86,78 @@ class Courses extends Base
             output($all_listing);
         }
 	}
+    
+    public function paid($course_sche_id)
+    {
+        if (!Pluggable::userin()) {
+            send_header(401);
+        }
+        
+        $paid = exist_in(array(
+            'table' => 'courseregistrations',
+            'where_column' => array('scheduledid', 'studentid', 'paymentstatus'),
+            'where_value' => array($course_sche_id, Session::get('id'), 'paid')
+        ));
+        
+        if ($paid) {
+            output_success(self::COURSE_ID, 'You already paid for this course.');
+        }
+        
+        output_error(self::COURSE_ID, 'You haven\'t for this course or the course or you (student) doesn\'t exist.');
+    }
+    
+    public function history()
+    {
+        if (!Pluggable::userin()) {
+            send_header(401);
+        }
+        
+        $sql = "
+            SELECT 
+              cr.amount,
+              cr.paymentstatus,
+              cr.discountedamount,
+              cr.paymenttype,
+              sc.coursedate,
+              sc.coursetime,
+              sc.courseendtime,
+              cr.registrationstatus,
+              sc.scheduledcoursesid,
+              sc.coursecost,
+              ct.coursetypename,
+              cr.registrationdatetime,
+              cr.promocode,
+              cr.courseregistrationsid,
+              sc.coursestatus,
+              l.locationname,
+              l.locationaddress,
+              l.locationcity,
+              l.locationstate,
+              l.locationzip,
+              ca.inst_cert_agency_name agency
+            FROM
+              courseregistrations cr
+              INNER JOIN scheduledcourses sc
+                ON (cr.scheduledid = sc.scheduledcoursesid)
+              INNER JOIN coursetypes ct
+                ON (sc.coursetype = ct.coursetypesid)
+              LEFT JOIN locations l
+                ON (sc.courselocationid = l.locationsid)
+              INNER JOIN instructor_cert_agency ca
+                ON ct.coursetypecert = ca.inst_cert_agencyid
+            WHERE sc.coursestatus != 'closed'
+              AND studentid = " . get_user_id() . "
+            GROUP BY sc.scheduledcoursesid
+        ";
+        
+        $result = $this->getResults(array(
+            'sql' => $sql
+        ));
+
+        if ($result) {
+            output_success(self::COURSE_ID, null, $result);
+        }
+        
+        output_error(self::COURSE_ID);
+    }
 }

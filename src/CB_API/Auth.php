@@ -12,7 +12,7 @@ class Auth extends Base
     
     public function userin()
     {
-        if (Session::get('id') && Session::get('email')) {
+        if (Pluggable::userin()) {
             output_success(self::AUTH_ID);
         }
         
