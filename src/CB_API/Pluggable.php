@@ -26,4 +26,24 @@ class Pluggable
         
         return false;
     }
+    
+    protected static function paymentMode()
+    {
+        return exist_in(array(
+            'select' => 'payment',
+            'table' => 'config_settings'
+        ));
+    }
+    
+    protected static function getAcctAndConfig()
+    {
+    	$config = array(
+			"acct1.UserName" => "sid-facilitator_api1.webxity.com",
+			"acct1.Password" => "1399997125",
+			"acct1.Signature" => "An5ns1Kso7MWUdW4ErQKJJJ4qi4-AjL7E9bxc.fTgzxrAHvqH7jS8qlZ",
+            "mode" => "sandbox"
+		);
+		
+		return $config;
+    }
 }

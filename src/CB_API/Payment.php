@@ -1,9 +1,22 @@
 <?php
 namespace CB_API;
 
+use PayPal\CoreComponentTypes\BasicAmountType;
+use PayPal\EBLBaseComponents\AddressType;
+use PayPal\EBLBaseComponents\CreditCardDetailsType;
+use PayPal\EBLBaseComponents\DoDirectPaymentRequestDetailsType;
+use PayPal\EBLBaseComponents\PayerInfoType;
+use PayPal\EBLBaseComponents\PaymentDetailsType;
+use PayPal\EBLBaseComponents\PersonNameType;
+use PayPal\PayPalAPI\DoDirectPaymentReq;
+use PayPal\PayPalAPI\DoDirectPaymentRequestType;
+use PayPal\Service\PayPalAPIInterfaceServiceService;
+
 class Payment extends Base
 {
     const PAYMENT_ID = 5;
+    
+    private $form_fields;
     
     public function __construct()
     {
@@ -76,12 +89,39 @@ class Payment extends Base
             output_error(self::PAYMENT_ID, $errors);
         }
         
-        $user_data = get_user_info();
+        $this->form_fields = $data_fields;
         
+        $this->process();
+        
+        output_error(self::PAYMENT_ID);
+    }
+    
+    public function mode()
+    {
+        output_success(self::PAYMENT_ID, Pluggable::paymentMode());
+    }
+    
+    protected function process()
+    {
+        if (Pluggable::paymentMode() === "stripe")
+            $this->payStripeMode();
+        elseif (Pluggable::paymentMode() === "paypal")
+            $this->payPaypalMode();
+    }
+    
+    private function payStripeMode()
+    {
         try {
+            $user_data = get_user_info();
+            
+            $data_fields = $this->form_fields;
+            
             require_once ABSPATH . 'assets/external_files/stripe_payment/lib/Stripe.php';
             
-            \Stripe::setApiKey('sk_test_E7PndfA06ZwUe4GjANBr0Acf');
+            $api_key = get_stripe_api_key();
+            $api_key = $api_key ? $api_key : '';
+            
+            \Stripe::setApiKey($api_key);
 
 			$charge = \Stripe_Charge::create(array(
 				"amount" 				=> ((int) $data_fields['coursecost'] * 100),
@@ -91,7 +131,7 @@ class Payment extends Base
 			));
             
             if ($charge->paid) {
-                $updated = $this->updateInto('courseregistrations', array(
+                $this->updateInto('courseregistrations', array(
 					"sessionid"							=> get_session_id(),
 					"paymenttransactionid"				=> $charge->id,
 					"paymentstatus"						=> 'paid',
@@ -105,23 +145,136 @@ class Payment extends Base
                     'studentid' => $user_data['id']
                 ));
                 
-                if ($updated) {
-                    $inserted = $this->insertInto("payment_record", array(
-                        'TRANSACTIONID' => $charge->id,
-                        'studentid' => $user_data['id'],
-                        'token_id' => $charge->id
-                    ));
-                    
-                    if ($inserted) {
-                        output_success(self::PAYMENT_ID, 'Payment successfuly made.');
-                    }
-                }
+                $this->insertInto("payment_record", array(
+                    'TRANSACTIONID' => $charge->id,
+                    'studentid' => $user_data['id'],
+                    'token_id' => $charge->id
+                ));
+                
+                output_success(self::PAYMENT_ID, 'Payment successfuly made.');
             } else {
                 output_error(self::PAYMENT_ID, 'Problem with Stripe.');
             }
             
         } catch(Exception $e) {
-            echo $e->getMessage();
+            output_error(self::PAYMENT_ID, $e->getMessage());
+        }
+    }
+    
+    private function payPaypalMode()
+    {
+        try {
+            $user_data = get_user_info();
+            
+            $data_fields = $this->form_fields;
+            
+            $firstName = $data_fields['firstName'];
+            $lastName = $data_fields['lastName'];
+            
+            /*
+             * shipping adress
+            */
+            $address = new AddressType();
+            $address->Name = "$firstName $lastName";
+            $address->Street1 = $data_fields['address1'];
+            $address->Street2 = $user_data['studentaddress2'];
+            $address->CityName = $data_fields['city'];
+            $address->StateOrProvince = $data_fields['state'];
+            $address->PostalCode = $data_fields['zip'];
+            $address->Country = $data_fields['country'];
+            $address->Phone = $user_data['studentmobilephone'];
+            
+            $paymentDetails = new PaymentDetailsType();
+            $paymentDetails->ShipToAddress = $address;
+            
+            // Amount
+            $paymentDetails->OrderTotal = new BasicAmountType('USD', $data_fields['coursecost']);
+            
+            // Notify URL
+            if(isset($_REQUEST['notifyURL']))
+            {
+            	$paymentDetails->NotifyURL = $_REQUEST['notifyURL'];
+            }
+            
+            $personName = new PersonNameType();
+            $personName->FirstName = $firstName;
+            $personName->LastName = $lastName;
+            
+            //information about the payer
+            $payer = new PayerInfoType();
+            $payer->PayerName = $personName;
+            $payer->Address = $address;
+            $payer->PayerCountry = $data_fields['country'];
+            
+            // CC Details
+            $cardDetails = new CreditCardDetailsType();
+            $cardDetails->CreditCardNumber = $data_fields['creditCardNumber'];
+            
+            $cardDetails->CreditCardType = $data_fields['creditCardType'];
+            $cardDetails->ExpMonth = $data_fields['expDateMonth'];
+            $cardDetails->ExpYear = $data_fields['expDateYear'];
+            $cardDetails->CVV2 = $data_fields['cvv2Number'];
+            $cardDetails->CardOwner = $payer;
+            
+            $ddReqDetails = new DoDirectPaymentRequestDetailsType();
+            $ddReqDetails->CreditCard = $cardDetails;
+            $ddReqDetails->PaymentDetails = $paymentDetails;
+            
+            $doDirectPaymentReq = new DoDirectPaymentReq();
+            $doDirectPaymentReq->DoDirectPaymentRequest = new DoDirectPaymentRequestType($ddReqDetails);
+
+            $paypalService = new PayPalAPIInterfaceServiceService(Pluggable::getAcctAndConfig());
+            
+            try {
+            	$doDirectPaymentResponse = $paypalService->DoDirectPayment($doDirectPaymentReq);
+            } catch (Exception $ex) {
+            	output_error(self::PAYMENT_ID, $ex->getMessage());
+            }
+            
+            if(isset($doDirectPaymentResponse, $doDirectPaymentResponse->TransactionID)) {
+                $this->updateInto('courseregistrations', array(
+					"sessionid"							=> get_session_id(),
+					"paymenttransactionid"				=> $doDirectPaymentResponse->TransactionID,
+					"paymentstatus"						=> 'paid',
+					"paymenttype"						=> "paypal",
+					"total_amount"						=> $data_fields['coursecost'],
+					"total_product"						=> 1,
+					"amount"							=> $data_fields['coursecost'],
+					"form_data"							=> serialize($data_fields)
+                ), array(
+                    'scheduledid' => $data_fields['scheduledcoursesid'],
+                    'studentid' => $user_data['id']
+                ));
+                
+                $this->insertInto("payment_record", array(
+                    'TRANSACTIONID' => $doDirectPaymentResponse->TransactionID,
+                    'studentid' => $user_data['id'],
+                    'token_id' => $doDirectPaymentResponse->CorrelationID
+                ));
+                
+                output_success(self::PAYMENT_ID, 'Payment successfuly made.', $doDirectPaymentResponse);
+            } else {
+                output_error(self::PAYMENT_ID, 'Problem with Paypal.', $doDirectPaymentResponse);
+            }
+            
+        } catch(Exception $e) {
+            output_error(self::PAYMENT_ID, $e->getMessage());
+        }
+    }
+    
+    public function stripePublicKey()
+    {
+        $public_key = exist_in(array(
+            'select' => 'stripe_published_key',
+            'table' => 'config_settings',
+            'where_column' => 'payment',
+            'where_value' => 'stripe'
+        ));
+        
+        if ($public_key) {
+            output_success(self::PAYMENT_ID, null, array (
+                'key' => $public_key
+            ));
         }
         
         output_error(self::PAYMENT_ID);

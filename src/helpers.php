@@ -303,17 +303,19 @@ function exist_in(array $data)
     $where = array();
     $is = '';
     
-    if (is_array($data['where_column']) && is_array($data['where_value'])) {
-        
-        $where = array_combine($where_column, $where_value);
-        
-        foreach ($where as $key => $value) {
-            if (!empty($key) && !empty($value)) {
-                $is .= " {$relation} {$key} = :{$key}";
+    if (isset_empty($where_column, $where_value)) {
+        if (is_array($where_column) && is_array($where_value)) {
+            
+            $where = array_combine($where_column, $where_value);
+            
+            foreach ($where as $key => $value) {
+                if (!empty($key) && !empty($value)) {
+                    $is .= " {$relation} {$key} = :{$key}";
+                }
             }
+        } else {
+            $is = "{$relation} {$where_column} = :val";
         }
-    } else {
-        $is = "{$relation} {$where_column} = :val";
     }
     
     $sql = "
@@ -486,4 +488,43 @@ function month_range()
     }
     
     return $month_range;
+}
+
+function course_exist($id)
+{
+    return exist_in(array(
+        'table' => 'scheduledcourses',
+        'where_column' => 'scheduledcoursesid',
+        'where_value' => $id,
+        'where_datatype' => \PDO::PARAM_INT
+    ));
+}
+
+function course_enrolled($course_id, $user_id)
+{
+    return exist_in(array(
+        'table' => 'courseregistrations',
+        'where_column' => array('scheduledid', 'studentid'),
+        'where_value' => array($course_id, $user_id),
+        'where_datatype' => \PDO::PARAM_INT
+    ));
+}
+
+function get_stripe_api_key()
+{
+    return exist_in(array(
+        'select' => 'stripe_private_key',
+        'table' => 'config_settings',
+        'where_column' => 'payment',
+        'where_value' => 'stripe'
+    ));
+}
+
+function is_paid_to_course($course_id, $user_id)
+{
+    return exist_in(array(
+        'table' => 'courseregistrations',
+        'where_column' => array('scheduledid', 'studentid', 'paymentstatus'),
+        'where_value' => array($course_id, $user_id, 'paid')
+    ));
 }

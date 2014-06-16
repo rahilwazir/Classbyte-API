@@ -133,8 +133,18 @@ class Sign extends Base
     
     public function out()
     {
-        if (Session::get('id') && Session::get('email')) {
-            Session::destroy();
+        if (!Pluggable::userin()) {
+            send_header(401);
+        }
+        
+        $status = $this->updateInto('api_user_sessions', array (
+            'status' => 'off'
+        ), array (
+            'session_id' => '"' . get_session_id() . '"',
+            'user_id' => get_user_id()
+        ));
+
+        if ($status) {
             output_success(self::SIGN_ID);
         }
         
