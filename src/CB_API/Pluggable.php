@@ -37,10 +37,18 @@ class Pluggable
     
     protected static function getAcctAndConfig()
     {
+        $paypal_config = exist_in(array(
+            'select' => 'api_username, api_password, api_signature',
+            'table' => 'config_settings'
+        ));
+        
+        if (!$paypal_config)
+            return array(); 
+        
     	$config = array(
-			"acct1.UserName" => "sid-facilitator_api1.webxity.com",
-			"acct1.Password" => "1399997125",
-			"acct1.Signature" => "An5ns1Kso7MWUdW4ErQKJJJ4qi4-AjL7E9bxc.fTgzxrAHvqH7jS8qlZ",
+			"acct1.UserName" => $paypal_config['api_username'],
+			"acct1.Password" => $paypal_config['api_password'],
+			"acct1.Signature" => $paypal_config['api_signature'],
             "mode" => "sandbox"
 		);
 		

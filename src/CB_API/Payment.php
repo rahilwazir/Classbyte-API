@@ -162,7 +162,7 @@ class Payment extends Base
     }
     
     private function payPaypalMode()
-    {
+    {        
         try {
             $user_data = get_user_info();
             
