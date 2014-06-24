@@ -2,6 +2,7 @@
 namespace CB_API;
 
 if (!session_id()) {
+    session_name('__cbapi');
     session_start();    
 }
 

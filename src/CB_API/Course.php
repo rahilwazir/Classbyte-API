@@ -12,6 +12,7 @@ class Course extends Base
     
     public function enroll()
     {
+        echo 1;
         if (!Pluggable::userin()) {
             send_header(401);
         }

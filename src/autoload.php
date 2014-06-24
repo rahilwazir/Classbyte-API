@@ -2,6 +2,9 @@
 // configuration
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'config.php';
 
+// vendor autoload (composer packages)
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor/autoload.php';
+
 // DB Connection
 require_once '../../admin/src/RWDB.php';
 
