@@ -6,7 +6,7 @@ abstract class Base extends \RWDB
     protected $request_method = null;
     protected $verified = false;
     
-	public function __construct()
+    public function __construct()
     {
         parent::__construct();
         
