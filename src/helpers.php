@@ -198,12 +198,41 @@ function disable_errors($disable = false)
     error_reporting(0);
 }
 
-// Log error reporting
+/**
+ * Log error reporting
+ *
+ * @param string $msg
+ */
 function log_error($msg = '')
 {
 	if (!empty($msg)) {
 		error_log($msg, 0);
 	}
+}
+
+/**
+ * Log response errors to our file
+ *
+ * @param string $str
+ */
+function log_response_error($str)
+{
+    $logDir = '../logs';
+
+    if (!is_dir($logDir)) {
+        mkdir($logDir);
+    }
+
+    if (!empty($str)) {
+        if (is_object($str) || is_array($str)) {
+            $str = json_encode($str);
+        }
+
+        $str = date('Y-m-d H:i:s') . ': ' . $str;
+        $str = PHP_EOL . $str;
+
+        file_put_contents("{$logDir}/response_error.log", $str, FILE_APPEND | LOCK_EX);
+    }
 }
 
 /**
@@ -219,26 +248,37 @@ function convert_to_cc($str)
 /**
  * Output as json encode
  * Sluggish helper, improve if you can
+ *
+ * @param string $str|object|array
+ * @param boolean $echo
+ *
+ * @return string or terminate the current page execution
  */
 function output($str, $echo = true)
 {
+    $encoded = json_encode($str);
+
 	if ($echo) {
-	   echo json_encode($str);
+	   echo $encoded;
        exit;
 	} else {
-	   return json_encode($str);
+	   return $encoded;
 	}
 }
 
 function output_error($action, $msg = null, $data = null)
 {
     if (!empty($action)) {
-        output(array(
+        $output = array(
             'success' => false,
             'action' => $action,
             'message' => $msg,
             'object' => $data
-        ));
+        );
+
+        log_response_error($output);
+
+        output($output);
     }
 }
 
