@@ -270,7 +270,7 @@ function getApiKey($email)
         'where_value' => $email
     ));
     
-    if ($result) {        
+    if ($result) {
         return $result['apikey'];
     }
     
@@ -294,11 +294,7 @@ function exist_in(array $data)
     
     $where_column = $data['where_column'];
     $where_value = $data['where_value'];
-    $relation = $data['relation'];
-    
-    if(!isset($relation)) {
-        $relation = "AND";
-    }
+    $relation = (!isset($data['relation']) ? "AND" : $data['relation']);
     
     $where = array();
     $is = '';
@@ -344,7 +340,6 @@ function exist_in(array $data)
                 $return_val = $data['select'];
             }            
         }
-        
         return (isset($return_val)) ? $result[ $return_val ] : $result;
     }
     

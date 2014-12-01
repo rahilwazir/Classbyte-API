@@ -5,13 +5,13 @@ class Sign extends Base
 {
     const SIGN_ID = 1;
     
-	public function __construct()
-	{
-		parent::__construct();
-	}
+    public function __construct()
+    {
+	parent::__construct();
+    }
 
-	public function in()
-	{
+    public function in()
+    {
         $email = filter_input(0, 'cb_login_email', FILTER_SANITIZE_EMAIL);
         $password = filter_input(0, 'cb_login_password', FILTER_SANITIZE_STRING);
         
@@ -38,7 +38,7 @@ class Sign extends Base
         ));
         
         output_success(self::SIGN_ID, "Logged In.", array('session_id' => $session_id));
-	}
+    }
     
     public function up()
 	{

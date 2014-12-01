@@ -12,7 +12,6 @@ class Course extends Base
     
     public function enroll()
     {
-        echo 1;
         if (!Pluggable::userin()) {
             send_header(401);
         }
@@ -21,7 +20,7 @@ class Course extends Base
         
         $data_fields = array();
         $data_fields['course_id'] = filter_input(0, 'course_id', FILTER_VALIDATE_INT);
-        
+
         if (!course_enrolled($data_fields['course_id'], $user_id)) {
             $course_reg = $this->insertInto('courseregistrations', array (
                 'scheduledid' => $data_fields['course_id'],
@@ -41,8 +40,8 @@ class Course extends Base
         }
     }
 
-	public function listing()
-	{
+    public function listing()
+    {
         $sql = "
             SELECT 
               sc.coursetype,
@@ -50,7 +49,7 @@ class Course extends Base
               sc.scheduledcoursesid,
               CONCAT_WS(', ', loc.locationcity, loc.locationstate) location,
               ct.coursetypename course,
-              CONCAT_WS(' ', ins_c.ins_certification_name, ct.coursetypename) coursename,
+              CONCAT_WS(' ', ins_cg.inst_cert_agency_name, ct.coursetypename) coursename,
               loc.locationzip,
               loc.lat AS lat,
               loc.lng AS lon,
@@ -75,8 +74,8 @@ class Course extends Base
                 ON sc.courselocationid = loc.locationsid 
               RIGHT JOIN coursetypes ct 
                 ON sc.coursetype = ct.coursetypesid
-              INNER JOIN instructor_cert_types ins_c
-    	        ON ct.coursetypecert = ins_c.ins_cert_id
+              INNER JOIN instructor_cert_agency ins_cg
+    	        ON ct.coursetypecert = ins_cg.inst_cert_agencyid
               LEFT JOIN courseregistrations cr
     	        ON sc.scheduledcoursesid = cr.scheduledid AND cr.registrationstatus != 'cancelled'
               INNER JOIN instructor_cert_agency ca
@@ -91,7 +90,7 @@ class Course extends Base
         $results = $this->getResults(array(
             'sql' => $sql
         ));
-
+        
         if ($results) {
             $all_listing = array();
             
@@ -116,7 +115,7 @@ class Course extends Base
             
             output($all_listing);
         }
-	}
+    }
     
     public function paid($course_sche_id)
     {

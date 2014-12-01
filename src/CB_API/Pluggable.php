@@ -18,7 +18,7 @@ class Pluggable
                 'where_column' => 'session_id',
                 'where_value' => $session_id
             ));
-            
+
             if ($cookie_session_exist) {
                 return true;
             }
@@ -38,20 +38,20 @@ class Pluggable
     protected static function getAcctAndConfig()
     {
         $paypal_config = exist_in(array(
-            'select' => 'api_username, api_password, api_signature',
+            'select' => 'api_username, api_password, api_signature, sandbox',
             'table' => 'config_settings'
         ));
         
         if (!$paypal_config)
             return array(); 
-        
+
     	$config = array(
-			"acct1.UserName" => $paypal_config['api_username'],
-			"acct1.Password" => $paypal_config['api_password'],
-			"acct1.Signature" => $paypal_config['api_signature'],
-            "mode" => "sandbox"
-		);
-		
-		return $config;
+    	    "acct1.UserName" => $paypal_config['api_username'],
+    	    "acct1.Password" => $paypal_config['api_password'],
+    	    "acct1.Signature" => $paypal_config['api_signature'],
+            "mode" => (($paypal_config['sandbox'] && $paypal_config['sandbox'] == 0) ? "live" : "sandbox")
+        );
+	
+	   return $config;
     }
 }
