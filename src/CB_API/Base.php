@@ -11,7 +11,6 @@ abstract class Base extends \RWDB
         parent::__construct();
         
         $this->requestMethod();
-        
         $this->validate();
     }
     

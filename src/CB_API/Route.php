@@ -3,7 +3,9 @@ namespace CB_API;
 
 class Route
 {
-	// Array of URL segments
+    /**
+     * @var array|null
+     */
 	public $segments = null;
 
 	public function __construct()

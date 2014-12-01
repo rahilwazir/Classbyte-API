@@ -42,8 +42,7 @@ class Course extends Base
 
     public function listing()
     {
-        $sql = "
-            SELECT 
+        $sql = "SELECT
               sc.coursetype,
               sc.coursedate,
               sc.scheduledcoursesid,
@@ -84,8 +83,7 @@ class Course extends Base
               AND sc.coursedate > CURDATE()
               AND sc.privatecourse = 'no'
               AND (sc.coursestatus = 'scheduled' OR sc.coursestatus = 'accepted')
-            GROUP BY sc.scheduledcoursesid
-        ";
+            GROUP BY sc.scheduledcoursesid";
 
         $results = $this->getResults(array(
             'sql' => $sql
@@ -142,8 +140,7 @@ class Course extends Base
             send_header(401);
         }
         
-        $sql = "
-            SELECT 
+        $sql = "SELECT
               cr.amount,
               cr.paymentstatus,
               cr.discountedamount,
@@ -177,8 +174,7 @@ class Course extends Base
                 ON ct.coursetypecert = ca.inst_cert_agencyid
             WHERE sc.coursestatus != 'closed'
               AND studentid = " . get_user_id() . "
-            GROUP BY sc.scheduledcoursesid
-        ";
+            GROUP BY sc.scheduledcoursesid";
         
         $result = $this->getResults(array(
             'sql' => $sql
