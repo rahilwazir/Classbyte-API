@@ -3,6 +3,7 @@ namespace PayPal\Auth\Openid;
 
 use PayPal\Common\PPApiContext;
 use PayPal\Common\PPModel;
+use PayPal\Handler\PPOpenIdHandler;
 use PayPal\Transport\PPRestCall;
 
 /**
@@ -128,11 +129,18 @@ class PPOpenIdTokeninfo extends PPModel {
 		 * @param PPApiContext $apiContext Optional API Context   
 		 * @return PPOpenIdTokeninfo
 		 */
-		public static function createFromAuthorizationCode($params, $apiContext=null) {
+		public static function createFromAuthorizationCode($params, $clientId, $clientSecret, $apiContext=null) {
 			static $allowedParams = array('grant_type' => 1, 'code' => 1, 'redirect_uri' => 1);
 			if(is_null($apiContext)) {
 				$apiContext = new PPApiContext();
 			}
+			$config = $apiContext->getConfig();
+
+			if ($apiContext->get($clientId) !== false)
+			    $clientId = $apiContext->get($clientId);
+			
+			if ($apiContext->get($clientSecret) !== false)
+			    $clientSecret = $apiContext->get($clientSecret);
 			
 			if(!array_key_exists('grant_type', $params)) {
 				$params['grant_type'] = 'authorization_code';
@@ -141,17 +149,17 @@ class PPOpenIdTokeninfo extends PPModel {
 			$call = new PPRestCall($apiContext);
 			$token = new PPOpenIdTokeninfo();
 			$token->fromJson(
-				$call->execute(array('PayPal\Handler\PPOpenIdHandler'),
+				$call->execute(array(new PPOpenIdHandler()),
 					"/v1/identity/openidconnect/tokenservice" , "POST", 
 					http_build_query(array_intersect_key($params, $allowedParams)),
 					array(
 						'Content-Type' => 'application/x-www-form-urlencoded',
-						'Authorization' => 'Basic ' . base64_encode($params['client_id'] . ":" . $params['client_secret'])
+						'Authorization' => 'Basic ' . base64_encode($clientId . ":" . $clientSecret)
 					)
 			));
 			return $token;
 		}
-        /**
+		/**
 		 * Creates an Access Token from an Refresh Token.
 		 *
 		 * @path /v1/identity/openidconnect/tokenservice
@@ -182,7 +190,7 @@ class PPOpenIdTokeninfo extends PPModel {
 			
 			$call = new PPRestCall($apiContext);			
 			$this->fromJson(
-				$call->execute(array('PayPal\Handler\PPOpenIdHandler'), 
+				$call->execute(array(new PPOpenIdHandler()), 
 					"/v1/identity/openidconnect/tokenservice", "POST",
 					http_build_query(array_intersect_key($params, $allowedParams)),
 					array(

@@ -37,8 +37,11 @@ class PPRestCall {
 		);
 		
 		foreach($handlers as $handler) {
-			$handler = new $handler($this->apiContext);
-			$handler->handle($httpConfig, $data, array('path' => $path));
+			if (!is_object($handler)) {
+				$shandler = "\\".$handler;
+				$handler = new $shandler($this->apiContext);
+			}
+			$handler->handle($httpConfig, $data, array('path' => $path, 'apiContext' => $this->apiContext));
 		}
 		$connection = new PPHttpConnection($httpConfig, $config);
 		$response = $connection->execute($data);

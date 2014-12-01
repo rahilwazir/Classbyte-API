@@ -8,14 +8,15 @@ class PPHttpConfig {
 	 * These are typically overridden by PPConnectionManager
 	 */
 	public static $DEFAULT_CURL_OPTS = array(
-		CURLOPT_SSLVERSION => 3,
+		CURLOPT_SSLVERSION => 1,
 		CURLOPT_CONNECTTIMEOUT => 10,
 		CURLOPT_RETURNTRANSFER => TRUE,
 		CURLOPT_TIMEOUT        => 60,	// maximum number of seconds to allow cURL functions to execute
 		CURLOPT_USERAGENT      => 'PayPal-PHP-SDK',
 		CURLOPT_HTTPHEADER     => array(),
 		CURLOPT_SSL_VERIFYHOST => 2,
-		CURLOPT_SSL_VERIFYPEER => 1
+		CURLOPT_SSL_VERIFYPEER => 1,
+        CURLOPT_SSL_CIPHER_LIST => 'TLSv1',
 	);	
 	
 	const HEADER_SEPARATOR = ';';	
@@ -76,7 +77,7 @@ class PPHttpConfig {
 		if(!array_key_exists($name, $this->headers) || $overWrite) {
 			$this->headers[$name] = $value;
 		} else {
-			$this->headers[$name] = $this->headers[$name] . HEADER_SEPARATOR . $value;			
+			$this->headers[$name] = $this->headers[$name] . self::HEADER_SEPARATOR . $value;			
 		}
 	}
 	
@@ -134,7 +135,7 @@ class PPHttpConfig {
 		if(isset($urlParts["port"]))
 			$this->curlOptions[CURLOPT_PROXY] .=  ":" . $urlParts["port"];
 		if(isset($urlParts["user"]))
-			$this->curlOptions[URLOPT_PROXYUSERPWD]	= $urlParts["user"] . ":" . $urlParts["pass"];
+			$this->curlOptions[CURLOPT_PROXYUSERPWD]	= $urlParts["user"] . ":" . $urlParts["pass"];
 	}	
 	
 	/**

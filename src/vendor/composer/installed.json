@@ -1,24 +1,27 @@
 [
     {
         "name": "paypal/sdk-core-php",
-        "version": "v2.4.3",
-        "version_normalized": "2.4.3.0",
+        "version": "v2.5.7",
+        "version_normalized": "2.5.7.0",
         "source": {
             "type": "git",
             "url": "https://github.com/paypal/sdk-core-php.git",
-            "reference": "226d3492f80847f09c99debb4d3220d5e744ddc8"
+            "reference": "36b182081f24b78d64ec104f03bafb18718dd3fd"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/paypal/sdk-core-php/zipball/226d3492f80847f09c99debb4d3220d5e744ddc8",
-            "reference": "226d3492f80847f09c99debb4d3220d5e744ddc8",
+            "url": "https://api.github.com/repos/paypal/sdk-core-php/zipball/36b182081f24b78d64ec104f03bafb18718dd3fd",
+            "reference": "36b182081f24b78d64ec104f03bafb18718dd3fd",
             "shasum": ""
         },
         "require": {
             "ext-curl": "*",
             "php": ">=5.3.0"
         },
-        "time": "2013-09-11 14:27:58",
+        "require-dev": {
+            "phpunit/phpunit": "3.7.*"
+        },
+        "time": "2014-11-10 21:11:50",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -46,25 +49,25 @@
     },
     {
         "name": "paypal/merchant-sdk-php",
-        "version": "v3.6.106",
-        "version_normalized": "3.6.106.0",
+        "version": "v3.8.107",
+        "version_normalized": "3.8.107.0",
         "source": {
             "type": "git",
             "url": "https://github.com/paypal/merchant-sdk-php.git",
-            "reference": "c8641e01d6f6e8419f5d50cfd7fc810874af911c"
+            "reference": "6c874a8257db3f27c99d599883493704b790141a"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/paypal/merchant-sdk-php/zipball/c8641e01d6f6e8419f5d50cfd7fc810874af911c",
-            "reference": "c8641e01d6f6e8419f5d50cfd7fc810874af911c",
+            "url": "https://api.github.com/repos/paypal/merchant-sdk-php/zipball/6c874a8257db3f27c99d599883493704b790141a",
+            "reference": "6c874a8257db3f27c99d599883493704b790141a",
             "shasum": ""
         },
         "require": {
             "ext-curl": "*",
-            "paypal/sdk-core-php": "2.4.*",
+            "paypal/sdk-core-php": "2.5.*",
             "php": ">=5.3.0"
         },
-        "time": "2013-08-22 18:32:30",
+        "time": "2014-11-10 22:32:38",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
