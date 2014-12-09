@@ -54,4 +54,30 @@ class Pluggable
 	
 	   return $config;
     }
+    
+    /**
+     * @param int $user_id
+     * @param int $course_id
+     * @param Object $DBInstance Parent Instance
+     */
+    protected static function enroll($user_id, $course_id, $DBInstance)
+    {
+        if ($user_id && $course_id && !course_enrolled($course_id, $user_id)) {
+            $course_reg = $DBInstance->insertInto('courseregistrations', array(
+                'scheduledid' => $course_id,
+                'studentid' => $user_id,
+                'registrationstatus' => 'registered',
+                'paymentstatus' => 'not paid',
+                'registeredby' => 'selfregister',
+                'total_amount' => 0,
+                'total_product' => 0
+            ));
+            
+            if ($course_reg) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

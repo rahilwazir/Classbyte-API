@@ -14,6 +14,7 @@ class Sign extends Base
     {
         $email = filter_input(0, 'cb_login_email', FILTER_SANITIZE_EMAIL);
         $password = filter_input(0, 'cb_login_password', FILTER_SANITIZE_STRING);
+        $enrollData = filter_input(0, CB_COOKIE_ENROLL, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         
         $student = exist_in(array(
             'table' => 'students',
@@ -25,17 +26,14 @@ class Sign extends Base
             output_error(self::SIGN_ID, "Account doesn't exist.");
         }
         
-        Session::set(array(
-            'id' => $student['studentsid'],
-            'email' => $student['studentemddress']
-        ));
-        
         $session_id = session_id();
         
         $student_reg = $this->insertInto('api_user_sessions', array (
             'session_id' => $session_id,
             'user_id' => $student['studentsid']
         ));
+        
+        Pluggable::enroll($student['studentsid'], $enrollData['course_id'], $this);
         
         output_success(self::SIGN_ID, "Logged In.", array('session_id' => $session_id));
     }
@@ -55,6 +53,7 @@ class Sign extends Base
         $std_email = filter_input(0, 'studentemddress', FILTER_SANITIZE_EMAIL);
         $std_password = filter_input(0, 'studentpassword');
         $std_password2 = filter_input(0, 'studentpassword2');
+        $enrollData = filter_input(0, CB_COOKIE_ENROLL, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
 
         if (!isset($course_id)) {
             output_error(self::SIGN_ID, "Please first enroll for the course");
@@ -114,21 +113,12 @@ class Sign extends Base
         ));
 
         if ($student_reg && $this->lastInsertId()) {
-            $course_reg = $this->insertInto('courseregistrations', array (
-                'scheduledid' => $course_id,
-                'studentid' => $this->lastInsertId(),
-                'registrationstatus' => 'registered',
-                'paymentstatus' => 'not paid',
-                'registeredby' => 'selfregister',
-                'total_amount' => 0,
-                'total_product' => 0,
-                'form_data' => ''
-            ));
-            
-            if ($course_reg) {
-                output_success(self::SIGN_ID, 'Registration completed. You can now login.');
-            }
+            Pluggable::enroll($this->lastInsertId(), $enrollData['course_id'], $this);
+
+            output_success(self::SIGN_ID, 'Registration completed. You can now login.');
         }
+        
+        output_error(self::SIGN_ID);
 	}
     
     public function out()

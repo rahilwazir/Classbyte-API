@@ -11,3 +11,6 @@ define("SRC_PATH", ROOT_PATH . 'src' . DIRECTORY_SEPARATOR);
 
 // API URL
 define("ROOT_URL", '/api/');
+
+// Enroll cookie constant
+define("CB_COOKIE_ENROLL", '__cbapi_enroll');

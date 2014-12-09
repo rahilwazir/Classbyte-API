@@ -19,25 +19,17 @@ class Course extends Base
         $user_id = get_user_id();
         
         $data_fields = array();
-        $data_fields['course_id'] = filter_input(0, 'course_id', FILTER_VALIDATE_INT);
+        $courseID = $data_fields['course_id'] = filter_input(0, 'course_id', FILTER_VALIDATE_INT);
+        
+        $course_reg = Pluggable::enroll($user_id, $courseID, $this);
 
-        if (!course_enrolled($data_fields['course_id'], $user_id)) {
-            $course_reg = $this->insertInto('courseregistrations', array (
-                'scheduledid' => $data_fields['course_id'],
-                'studentid' => $user_id,
-                'registrationstatus' => 'registered',
-                'paymentstatus' => 'not paid',
-                'registeredby' => 'selfregister',
-                'total_amount' => 0,
-                'total_product' => 0
-            ));
-            
-            if ($course_reg) {
-                output_success(self::COURSE_ID, 'You have been enrolled to the course.');
-            }
+        if ($course_reg) {
+            output_success(self::COURSE_ID, 'You have been enrolled to the course.');
         } else {
             output_success(self::COURSE_ID, 'You have already enrolled for this course.');
         }
+
+        output_error(self::COURSE_ID);
     }
 
     public function listing()
@@ -126,12 +118,12 @@ class Course extends Base
             'where_column' => array('scheduledid', 'studentid', 'paymentstatus'),
             'where_value' => array($course_sche_id, Session::get('id'), 'paid')
         ));
-        
+
         if ($paid) {
             output_success(self::COURSE_ID, 'You already paid for this course.');
         }
         
-        output_error(self::COURSE_ID, 'You haven\'t for this course or the course or you (student) doesn\'t exist.');
+        output_error(self::COURSE_ID, 'You haven\'t registered for this course or the course or you (student) doesn\'t exist.');
     }
     
     public function history()
